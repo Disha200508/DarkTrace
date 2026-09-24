@@ -8,7 +8,7 @@ const connectDB = require('./config/db');
 
 const app = express();
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL }));
+app.use(cors({ origin: process.env.CLIENT_URL ? (process.env.CLIENT_URL.includes(',') ? process.env.CLIENT_URL.split(',') : process.env.CLIENT_URL) : '*' }));
 app.use(express.json({ limit: '5mb' }));
 app.use(morgan('dev'));
 
