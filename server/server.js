@@ -12,6 +12,8 @@ app.use(cors({ origin: process.env.CLIENT_URL ? (process.env.CLIENT_URL.includes
 app.use(express.json({ limit: '5mb' }));
 app.use(morgan('dev'));
 
+app.get('/', (req, res) => res.json({ status: 'healthy', service: 'DarkTrace Threat Intelligence Backend', version: '1.0.0' }));
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/inv', require('./routes/investigator'));
