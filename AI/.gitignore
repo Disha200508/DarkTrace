@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Large raw datasets (>100MB exceeds GitHub file limit)
+archive/
+attack-stix-data/
+
+# Environment / local configs
+.env.local
+.venv/
+venv/
+env/
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

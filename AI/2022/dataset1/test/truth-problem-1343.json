@@ -1,0 +1,8 @@
+{
+"authors": 5,
+"structure": [5930, 5234, 7200, 5234, 4479, 13647, 7200, 13647, 5234],
+"site": "serverfault.com.7z",
+"multi-author": 1,
+"changes": [1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0],
+"paragraph-authors": [1, 2, 3, 2, 2, 4, 5, 5, 5, 3, 5, 2, 2]
+}

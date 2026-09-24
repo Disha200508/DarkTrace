@@ -1,0 +1,59 @@
+# ==============================================================================
+# SIH26151 - Dark Web Threat Actor De-anonymization AI Pipeline Configuration
+# Multi-Signal Correlation Weights, Anomaly Thresholds & Safety Rules
+# ==============================================================================
+
+pipeline:
+  name: "SIH26151 Threat Actor De-anonymization AI Engine"
+  version: "1.0.0"
+  model_version: "1.0.0"
+  feature_version: "1.0.0"
+  random_seed: 42
+  safety_notice: "Analytical similarity does not establish real-world identity. Research and demonstration only."
+
+# ------------------------------------------------------------------------------
+# 1. Multi-Signal Correlation Weights
+# Sum of weights does not need to equal 1.0 (they will be normalized dynamically
+# based on available vs unavailable signals).
+# ------------------------------------------------------------------------------
+weights:
+  stylometry: 0.25      # High discriminative power for linguistic style
+  behavior: 0.15        # Posting cadence, burstiness, forum distribution
+  activity_rhythm: 0.10 # 24-hour diurnal and weekly cycle
+  topic: 0.10           # Lexical & semantic topic affinity
+  timeline: 0.10        # Temporal migration & continuity
+  ttp: 0.15             # MITRE ATT&CK techniques & tactics alignment
+  wallet: 0.08          # Bitcoin transaction & graph behavior similarity
+  pgp: 0.04             # PGP cryptographic match / partial metadata
+  infrastructure: 0.03  # Domain, certificate, ASN, hosting similarity
+
+# ------------------------------------------------------------------------------
+# 2. Classification Thresholds for Overall Confidence
+# ------------------------------------------------------------------------------
+thresholds:
+  migration_candidate: 0.75     # High multi-signal confidence indicating persona migration
+  potential_association: 0.55   # Moderate confidence indicating shared operational profile
+  weak_association: 0.35        # Low confidence correlation
+  uncorrelated: 0.0             # Disparate profiles / insufficient overlap
+  min_evidence_coverage: 0.40   # Minimum required signal coverage before high-confidence classification
+
+# ------------------------------------------------------------------------------
+# 3. Contradiction Engine Penalties
+# When explicit hard contradictions occur, apply calibrated discount factors.
+# ------------------------------------------------------------------------------
+contradiction_penalties:
+  pgp_mismatch: 0.15               # Explicitly conflicting PGP keys
+  temporal_impossibility: 0.30     # Active concurrently in conflicting locations/personas
+  severe_activity_mismatch: 0.12   # Completely disjoint diurnal peak hours (>8h timezone delta)
+  infrastructure_conflict: 0.10    # Opposing infrastructure clusters
+
+# ------------------------------------------------------------------------------
+# 4. Anomaly Detection Settings
+# ------------------------------------------------------------------------------
+anomaly:
+  contamination: 0.05
+  models:
+    - "isolation_forest"
+    - "local_outlier_factor"
+  burst_zscore_threshold: 2.5
+  off_hour_threshold: 0.02

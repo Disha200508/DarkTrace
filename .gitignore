@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Python & Cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.venv/
+venv/
+env/
+**/venv/
+**/.venv/
+
+# Large Datasets & Binary Bundles (>100MB)
+archive/
+**/archive/
+attack-stix-data/
+**/attack-stix-data/
+
+# Build and dist outputs
+dist/
+build/
+**/dist/
+**/build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE & System Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
