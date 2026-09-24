@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
+if (!process.env.MONGO_URI || process.env.MONGO_URI.includes('127.0.0.1')) {
+  require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+}
 const { ingest } = require('../services/importService');
 
 const samplePayload = {
