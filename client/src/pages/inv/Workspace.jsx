@@ -12,6 +12,7 @@ export default function Workspace() {
   const { invId } = useParams(); const [sp, setSp] = useSearchParams(); const nav = useNavigate();
   const [ws, setWs] = useState(null); const [inv, setInv] = useState(null); const [searchId, setSearchId] = useState(null);
   const [err, setErr] = useState(''); const [saveOpen, setSaveOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
   const tab = sp.get('tab') || 'overview';
   const type = sp.get('type'), q = sp.get('q');
 
@@ -61,27 +62,16 @@ export default function Workspace() {
     catch (e) { toast.error(errMsg(e), { id: t }); }
   };
 
-  const toggleClose = async () => {
-    if (inv) {
-      const isClosed = inv.status === 'Closed';
-      const nextStatus = isClosed ? 'Active' : 'Closed';
-      const t = toast.loading(isClosed ? 'Reopening investigation…' : 'Closing investigation…');
+  const handleCloseClick = async () => {
+    if (inv?.status === 'Closed') {
+      const t = toast.loading('Reopening investigation…');
       try {
-        const { data } = await api.patch(`/inv/investigations/${inv._id}`, { status: nextStatus });
+        const { data } = await api.patch(`/inv/investigations/${inv._id}`, { status: 'Active' });
         setInv(data);
-        toast.success(isClosed ? 'Investigation reopened' : 'Investigation closed & moved to Closed tab', { id: t });
-        if (!isClosed) nav('/inv/investigations?bucket=closed');
+        toast.success('Investigation reopened', { id: t });
       } catch (e) { toast.error(errMsg(e), { id: t }); }
     } else {
-      const t = toast.loading('Closing investigation…');
-      try {
-        const { data } = await api.post('/inv/investigations', {
-          name: `Investigation: ${ws.query.query}`, priority: 'medium', status: 'Closed',
-          search: { type: ws.query.type, query: ws.query.query }, searchId, saved: true
-        });
-        toast.success('Investigation saved & moved to Closed tab', { id: t });
-        nav('/inv/investigations?bucket=closed');
-      } catch (e) { toast.error(errMsg(e), { id: t }); }
+      setCloseOpen(true);
     }
   };
 
@@ -103,7 +93,7 @@ export default function Workspace() {
           {!inv && <button onClick={() => setSaveOpen(true)} disabled={!ws.entities.length}>Save as Investigation</button>}
           <button
             className={isClosed ? 'btn-reopen-inv' : 'btn-close-inv'}
-            onClick={toggleClose}
+            onClick={handleCloseClick}
             disabled={!ws.entities.length}
             title={isClosed ? 'Reopen Investigation' : 'Close Investigation'}
           >
@@ -126,6 +116,7 @@ export default function Workspace() {
         {tab === 'sources' && <Sources ws={ws} />}
       </>}
       {saveOpen && <SaveModal query={query} searchId={searchId} onClose={() => setSaveOpen(false)} onSaved={(i) => nav(`/inv/investigation/${i._id}`)} />}
+      {closeOpen && <CloseModal query={query} searchId={searchId} inv={inv} onClose={() => setCloseOpen(false)} onClosed={(i) => { setCloseOpen(false); setInv(i); nav('/inv/investigations?bucket=closed'); }} />}
     </>
   );
 }
@@ -437,6 +428,79 @@ function SaveModal({ query, searchId, onClose, onSaved }) {
         <label>Tags (comma-separated)<input value={f.tags} onChange={set('tags')} /></label>
         <label>Investigator notes<textarea rows="4" value={f.notes} onChange={set('notes')} /></label>
         <button className="primary">Save investigation</button>
+      </form>
+    </Modal>
+  );
+}
+
+function CloseModal({ query, searchId, inv, onClose, onClosed }) {
+  const [notes, setNotes] = useState(inv?.notes || '');
+  const [priority, setPriority] = useState(inv?.priority || 'medium');
+  const [busy, setBusy] = useState(false);
+
+  const submitClose = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    const t = toast.loading('Closing investigation and saving notes…');
+    try {
+      if (inv) {
+        const { data } = await api.patch(`/inv/investigations/${inv._id}`, {
+          status: 'Closed',
+          priority,
+          notes: notes.trim(),
+        });
+        toast.success('Investigation closed & moved to Closed tab', { id: t });
+        onClosed(data);
+      } else {
+        const { data } = await api.post('/inv/investigations', {
+          name: `Investigation: ${query.query}`,
+          priority,
+          status: 'Closed',
+          notes: notes.trim(),
+          search: { type: query.type, query: query.query },
+          searchId,
+          saved: true,
+        });
+        toast.success('Investigation saved & moved to Closed tab', { id: t });
+        onClosed(data);
+      }
+    } catch (er) {
+      toast.error(errMsg(er), { id: t });
+    }
+    setBusy(false);
+  };
+
+  return (
+    <Modal title="Close Investigation — Case Review & Findings" onClose={onClose}>
+      <form onSubmit={submitClose} className="form">
+        <p className="muted sm">
+          Complete your case review below before closing this investigation. Add your final views, analytical findings, or conclusions.
+        </p>
+        <label>Subject / Search Identifier
+          <input value={query.query} disabled />
+        </label>
+        <label>Case Priority
+          <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </label>
+        <label>Investigator Views, Findings & Remarks
+          <textarea
+            rows="5"
+            placeholder="Enter your final assessment, analytical findings, conclusions, or reason for closing..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </label>
+        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
+          <button type="button" className="ghost" onClick={onClose} disabled={busy}>Cancel</button>
+          <button type="submit" className="btn-close-inv" disabled={busy}>
+            {busy ? 'Closing...' : '🔒 CONFIRM & CLOSE INVESTIGATION'}
+          </button>
+        </div>
       </form>
     </Modal>
   );
