@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../auth';
 import { useTheme } from '../theme';
 import { errMsg } from '../api';
+import LogoIcon from '../components/LogoIcon';
 
 export default function Login({ portal = 'investigator' }) {
   const { user, login } = useAuth();
@@ -137,7 +138,7 @@ export default function Login({ portal = 'investigator' }) {
       {/* TOPBAR */}
       <header className="auth-topbar">
         <div className="auth-brand-logo">
-          <span className="logo-symbol">◈</span>
+          <LogoIcon size={38} />
           <div className="brand-text-stack">
             <span className="brand-title">DarkTrace</span>
             <span className="brand-badge">CYBER INTELLIGENCE</span>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { useTheme } from '../theme';
+import LogoIcon from '../components/LogoIcon';
 
 export default function Home() {
   const { user } = useAuth();
@@ -47,7 +48,7 @@ export default function Home() {
       {/* TOP NAVBAR (NO BOTTOM LINE) */}
       <nav className="home-nav clean-nav">
         <div className="home-nav-left">
-          <span className="logo neon-glow">◈</span>
+          <LogoIcon size={32} />
           <span className="home-brand">DarkTrace <small className="glow-badge">INTELLIGENCE</small></span>
         </div>
 
@@ -481,7 +482,7 @@ export default function Home() {
         </div>
 
         <div className="footer-bottom">
-          <div>◈ <b>DarkTrace</b> · Threat Actor De-Anonymization & Intelligence</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><LogoIcon size={22} /> <b>DarkTrace</b> · Threat Actor De-Anonymization & Intelligence</div>
           <small>Authorized Security & Law Enforcement Use Only. All Activity Audited.</small>
         </div>
       </footer>

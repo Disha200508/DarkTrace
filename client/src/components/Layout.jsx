@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { useTheme } from '../theme';
+import LogoIcon from './LogoIcon';
 
 const INV = [
   { label: 'Dashboard', to: '/inv' },
@@ -48,7 +49,7 @@ export default function Layout({ portal, children }) {
   return (
     <div className="shell">
       <aside>
-        <div className="brand"><span className="logo">◈</span><div><b>DarkTrace</b><small>{portal === 'admin' ? 'ADMIN CONSOLE' : 'INVESTIGATOR'}</small></div></div>
+        <div className="brand"><LogoIcon size={26} /><div><b>DarkTrace</b><small>{portal === 'admin' ? 'ADMIN CONSOLE' : 'INVESTIGATOR'}</small></div></div>
         <nav>
           {items.map((it) => it.group ? (
             <div key={it.group} className="group"><div className="group-h">{it.group}</div>{it.items.map((s) => <NavItem key={s.to} it={s} />)}</div>
