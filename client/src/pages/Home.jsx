@@ -7,7 +7,7 @@ export default function Home() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const nav = useNavigate();
-  const [sampleQuery, setSampleQuery] = useState('DarkWolf');
+  const [sampleQuery, setSampleQuery] = useState('ShadowX');
   const [demoResult, setDemoResult] = useState(null);
   const [searching, setSearching] = useState(false);
   const [activeTab, setActiveTab] = useState('actor');
@@ -19,15 +19,15 @@ export default function Home() {
     setTimeout(() => {
       setDemoResult({
         query: sampleQuery,
-        actor: sampleQuery.toLowerCase().includes('wolf') ? 'DarkWolf' : 'GhostNode_99',
-        confidence: 94,
+        actor: sampleQuery.toLowerCase().includes('vortex') ? 'DarkVortex' : 'ShadowX',
+        confidence: 95,
         connectedEntities: 14,
-        sources: ['Darkweb Forum (XSS)', 'Telegram Channel', 'BTC Wallet Trans'],
+        sources: ['Dread Forum', 'Exploit.in', 'BTC Wallet Trans'],
         attributes: {
           primaryHandle: sampleQuery,
-          pgpFingerprint: '4A2B 88F1 90CC E310',
-          wallet: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
-          activityHours: '18:00 - 04:00 UTC',
+          pgpFingerprint: '4A8F 90B2 12C3 D4E5 F6A7 B8C9 0123 4567 89AB CDEF',
+          wallet: 'bc1qShadowX9947xy2kgdygjrsqtzq2n0yrf249',
+          activityHours: '00:00 - 03:00 UTC',
           riskLevel: 'HIGH THREAT',
         }
       });
@@ -104,7 +104,7 @@ export default function Home() {
             <div className="float-badge-icon green">🟢</div>
             <div className="float-badge-info">
               <span className="float-tag">ACTOR DETECTED</span>
-              <div className="float-val">DarkWolf <span className="float-pct">94%</span></div>
+              <div className="float-val">ShadowX <span className="float-pct">95%</span></div>
             </div>
           </div>
 
@@ -256,12 +256,12 @@ export default function Home() {
             </div>
             <div className="radar-circle-outer">
               <div className="radar-sweep-line" />
-              <div className="radar-target t1" title="DarkWolf (Actor)" />
-              <div className="radar-target t2" title="1A1zP... (Wallet)" />
+              <div className="radar-target t1" title="ShadowX (Actor)" />
+              <div className="radar-target t2" title="bc1qSha... (Wallet)" />
               <div className="radar-target t3" title="185.220... (IP Node)" />
             </div>
             <div className="radar-footer">
-              <span>ACTIVE TARGET: <b>DarkWolf</b></span>
+              <span>ACTIVE TARGET: <b>ShadowX</b></span>
               <span className="radar-freq">FREQ: 2.4 GHz</span>
             </div>
           </div>
@@ -286,15 +286,15 @@ export default function Home() {
             <div className="matrix-content-box">
               {activeTab === 'actor' && (
                 <div className="matrix-details">
-                  <div className="matrix-row"><span>Persona Handle:</span> <b>DarkWolf</b></div>
-                  <div className="matrix-row"><span>PGP Key ID:</span> <code>4A2B 88F1 90CC E310</code></div>
-                  <div className="matrix-row"><span>Forum Presence:</span> <span>XSS.is, BreachForums, RaidForums</span></div>
-                  <div className="matrix-row"><span>Risk Rating:</span> <span className="badge red">CRITICAL THREAT (94%)</span></div>
+                  <div className="matrix-row"><span>Persona Handle:</span> <b>ShadowX</b></div>
+                  <div className="matrix-row"><span>PGP Key ID:</span> <code>4A8F 90B2 12C3 D4E5 F6A7 B8C9 0123 4567 89AB CDEF</code></div>
+                  <div className="matrix-row"><span>Forum Presence:</span> <span>Dread, Exploit.in, RansomHub</span></div>
+                  <div className="matrix-row"><span>Risk Rating:</span> <span className="badge red">CRITICAL THREAT (95%)</span></div>
                 </div>
               )}
               {activeTab === 'wallet' && (
                 <div className="matrix-details">
-                  <div className="matrix-row"><span>BTC Address:</span> <code>1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</code></div>
+                  <div className="matrix-row"><span>BTC Address:</span> <code>bc1qShadowX9947xy2kgdygjrsqtzq2n0yrf249</code></div>
                   <div className="matrix-row"><span>Total Volume:</span> <b>48.25 BTC (~$3.1M)</b></div>
                   <div className="matrix-row"><span>Transaction Count:</span> <span>142 Transactions</span></div>
                   <div className="matrix-row"><span>Mixer Usage:</span> <span className="badge amber">Tornado Cash / CoinJoin</span></div>
@@ -385,8 +385,8 @@ export default function Home() {
             <h4>Attribute</h4>
             <p>Build an evidence-backed actor profile for official investigation.</p>
             <div className="pipe-badge-box">
-              <span>DARKWOLF</span>
-              <small>91% MATCH</small>
+              <span>SHADOWX</span>
+              <small>95% MATCH</small>
             </div>
           </div>
         </div>
@@ -414,7 +414,7 @@ export default function Home() {
               type="text"
               value={sampleQuery}
               onChange={(e) => setSampleQuery(e.target.value)}
-              placeholder="e.g. DarkWolf, 1A1zP1eP..., darkwolf@proton.me"
+              placeholder="e.g. ShadowX, 4A8F 90B2 12C3..., bc1qShadowX9947..."
               required
             />
             <button className="primary glow-btn" type="submit" disabled={searching}>

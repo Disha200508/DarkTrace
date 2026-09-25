@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const TYPES = [['username', 'Username / Handle', 'e.g. alpha_user'], ['pgp', 'PGP Fingerprint', 'Full fingerprint or key ID'], ['wallet', 'Cryptocurrency Wallet', 'Wallet address'],
-  ['forum', 'Forum Account', 'Account name'], ['marketplace', 'Marketplace Account', 'Vendor / account name'], ['domain', 'Domain', 'example.onion / example.com'],
-  ['infrastructure', 'Infrastructure Indicator', 'IP, hostname, certificate hash…'], ['actor', 'Actor ID', 'Actor identifier or name']];
+const TYPES = [
+  ['username', 'Username / Handle', 'e.g. ShadowX or DarkVortex'],
+  ['pgp', 'PGP Fingerprint', 'e.g. 4A8F 90B2 12C3 D4E5 F6A7 B8C9 0123 4567 89AB CDEF'],
+  ['wallet', 'Cryptocurrency Wallet', 'e.g. bc1qShadowX9947xy2kgdygjrsqtzq2n0yrf249'],
+  ['forum', 'Forum Account', 'e.g. ShadowX_Dread'],
+  ['marketplace', 'Marketplace Account', 'e.g. ShadowX'],
+  ['domain', 'Domain', 'e.g. shadow-drop.is'],
+  ['infrastructure', 'Infrastructure Indicator', 'e.g. vortex-leak-portal.onion'],
+  ['actor', 'Actor ID', 'e.g. ShadowX or DarkVortex']
+];
 
 export default function NewSearch() {
   const [type, setType] = useState('username'); const [q, setQ] = useState(''); const nav = useNavigate();
