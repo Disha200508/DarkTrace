@@ -6,7 +6,7 @@ import Graph from '../../components/Graph';
 import { Badge, Card, Conf, Empty, Modal, Table, TYPE_LABEL, fmt, fmtD } from '../../components/ui';
 
 const TABS = [['overview', 'Overview'], ['identifiers', 'Identifiers'], ['graph', 'Relationship Graph'], ['timeline', 'Timeline'], ['persona', 'AI Persona & Stylometry'],
-  ['infrastructure', 'Infrastructure'], ['blockchain', 'Blockchain'], ['evidence', 'Evidence'], ['sources', 'Sources'], ['report', 'Report']];
+  ['infrastructure', 'Infrastructure'], ['blockchain', 'Blockchain'], ['evidence', 'Evidence'], ['sources', 'Sources']];
 
 export default function Workspace() {
   const { invId } = useParams(); const [sp, setSp] = useSearchParams(); const nav = useNavigate();
@@ -124,7 +124,6 @@ export default function Workspace() {
         {tab === 'blockchain' && <Chain ws={ws} nameOf={nameOf} srcNames={srcNames} />}
         {tab === 'evidence' && <Evidence ws={ws} nameOf={nameOf} srcById={srcById} />}
         {tab === 'sources' && <Sources ws={ws} />}
-        {tab === 'report' && <Card title="Full Report"><p className="muted">The report compiles every tab into a single dossier, exportable as PDF, CSV or JSON.</p><button className="primary" onClick={generate}>GENERATE FULL REPORT</button></Card>}
       </>}
       {saveOpen && <SaveModal query={query} searchId={searchId} onClose={() => setSaveOpen(false)} onSaved={(i) => nav(`/inv/investigation/${i._id}`)} />}
     </>
