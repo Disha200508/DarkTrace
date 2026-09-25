@@ -105,7 +105,7 @@ export default function Workspace() {
 
       {!ws.entities.length ? <Empty>No matching intelligence exists for this identifier in the database.</Empty> : <>
         <div className="tabs">{TABS.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>
-        {tab === 'overview' && <Overview ws={ws} q={query} srcNames={srcNames} />}
+        {tab === 'overview' && <Overview ws={ws} q={query} srcNames={srcNames} inv={inv} />}
         {tab === 'identifiers' && <Identifiers ws={ws} srcNames={srcNames} />}
         {tab === 'graph' && <GraphTab ws={ws} byId={byId} nameOf={nameOf} srcNames={srcNames} expand={expand} />}
         {tab === 'timeline' && <Timeline ws={ws} srcNames={srcNames} />}
@@ -124,14 +124,29 @@ export default function Workspace() {
 const Field = ({ k, v }) => <div className="field"><span>{k}</span><div>{v || <em>—</em>}</div></div>;
 const list = (arr) => arr.length ? arr.map((e) => <div key={e._id}><code>{e.label ? `${e.label} · ` : ''}{e.value}</code></div>) : null;
 
-function Overview({ ws, q, srcNames }) {
+function Overview({ ws, q, srcNames, inv }) {
   const s = ws.summary; const of = (t) => ws.entities.filter((e) => e.type === t);
   const a = s.actors[0]; const c = s.confidence;
+  const isClosed = inv?.status === 'Closed';
   return (
     <div className="grid2">
+      {inv?.notes && (
+        <Card title={isClosed ? "🔒 Case Closure Review & Investigator Findings" : "📝 Investigator Review Notes"} className="span2">
+          <div style={{ background: 'var(--panel2)', padding: '14px 16px', borderRadius: 8, borderLeft: `4px solid ${isClosed ? '#ef4444' : 'var(--accent)'}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Badge tone={isClosed ? 'gray' : 'blue'}>{inv.status || 'Active'}</Badge>
+              <span>Recorded by Investigator</span>
+            </div>
+            <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: 14, color: 'var(--text)' }}>
+              {inv.notes}
+            </p>
+          </div>
+        </Card>
+      )}
+
       <Card title="Subject">
         <Field k="Search identifier" v={<code>{q.query}</code>} /><Field k="Actor" v={s.actors.map((x) => x.label || x.value).join(', ')} />
-        <Field k="Category" v={s.category} /><Field k="Status" v={s.status && <Badge tone="blue">{s.status}</Badge>} />
+        <Field k="Category" v={s.category} /><Field k="Status" v={(inv?.status || s.status) && <Badge tone={isClosed ? 'gray' : 'blue'}>{inv?.status || s.status}</Badge>} />
         <Field k="First observed" v={fmtD(s.firstSeen)} /><Field k="Last observed" v={fmtD(s.lastSeen)} />
         <Field k="Actor confidence" v={a?.confidence != null && <Conf v={a.confidence} />} />
       </Card>
