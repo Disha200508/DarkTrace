@@ -5,7 +5,7 @@ import api, { errMsg } from '../../api';
 import Graph from '../../components/Graph';
 import { Badge, Card, Conf, Empty, Modal, Table, TYPE_LABEL, fmt, fmtD } from '../../components/ui';
 
-const TABS = [['overview', 'Overview'], ['identifiers', 'Identifiers'], ['graph', 'Relationship Graph'], ['timeline', 'Timeline'], ['persona', 'AI Persona & Stylometry'], ['anomaly', 'Behavioral Anomalies'],
+const TABS = [['overview', 'Overview'], ['identifiers', 'Identifiers'], ['graph', 'Relationship Graph'], ['timeline', 'Timeline'], ['persona', 'AI Persona & Stylometry'],
   ['infrastructure', 'Infrastructure'], ['blockchain', 'Blockchain'], ['evidence', 'Evidence'], ['sources', 'Sources'], ['report', 'Report']];
 
 export default function Workspace() {
@@ -40,15 +40,55 @@ export default function Workspace() {
   };
 
   const generate = async () => {
-    if (!inv) return setSaveOpen(true);
+    let targetInv = inv;
+    if (!targetInv) {
+      const t0 = toast.loading('Saving investigation for report…');
+      try {
+        const { data } = await api.post('/inv/investigations', {
+          name: `Investigation: ${ws.query.query}`, priority: 'medium', status: 'Active',
+          search: { type: ws.query.type, query: ws.query.query }, searchId, saved: true
+        });
+        targetInv = data;
+        setInv(data);
+        toast.dismiss(t0);
+      } catch (e) {
+        toast.error(errMsg(e), { id: t0 });
+        return setSaveOpen(true);
+      }
+    }
     const t = toast.loading('Generating report…');
-    try { const { data } = await api.post(`/inv/investigations/${inv._id}/report`); toast.success('Report ready', { id: t }); nav(`/inv/reports/${data.reportId}`); }
+    try { const { data } = await api.post(`/inv/investigations/${targetInv._id}/report`); toast.success('Report ready', { id: t }); nav(`/inv/reports/${data.reportId}`); }
     catch (e) { toast.error(errMsg(e), { id: t }); }
+  };
+
+  const toggleClose = async () => {
+    if (inv) {
+      const isClosed = inv.status === 'Closed';
+      const nextStatus = isClosed ? 'Active' : 'Closed';
+      const t = toast.loading(isClosed ? 'Reopening investigation…' : 'Closing investigation…');
+      try {
+        const { data } = await api.patch(`/inv/investigations/${inv._id}`, { status: nextStatus });
+        setInv(data);
+        toast.success(isClosed ? 'Investigation reopened' : 'Investigation closed & moved to Closed tab', { id: t });
+        if (!isClosed) nav('/inv/investigations?bucket=closed');
+      } catch (e) { toast.error(errMsg(e), { id: t }); }
+    } else {
+      const t = toast.loading('Closing investigation…');
+      try {
+        const { data } = await api.post('/inv/investigations', {
+          name: `Investigation: ${ws.query.query}`, priority: 'medium', status: 'Closed',
+          search: { type: ws.query.type, query: ws.query.query }, searchId, saved: true
+        });
+        toast.success('Investigation saved & moved to Closed tab', { id: t });
+        nav('/inv/investigations?bucket=closed');
+      } catch (e) { toast.error(errMsg(e), { id: t }); }
+    }
   };
 
   if (err) return <Empty>{err}</Empty>;
   if (!ws) return <div className="boot">Correlating intelligence…</div>;
   const query = ws.query;
+  const isClosed = inv?.status === 'Closed';
 
   return (
     <>
@@ -56,11 +96,21 @@ export default function Workspace() {
         <div>
           <div className="crumb">{inv ? inv.invId : 'Unsaved search'} · {TYPE_LABEL[{ forum: 'forum_account', marketplace: 'marketplace_account' }[query.type] || query.type] || query.type}</div>
           <h1><code>{query.query}</code></h1>
-          <div className="row">{inv && <><Badge tone="blue">{inv.status}</Badge><Badge tone={inv.priority === 'critical' || inv.priority === 'high' ? 'red' : 'gray'}>{inv.priority}</Badge>{inv.tags.map((t) => <Badge key={t}>{t}</Badge>)}</>}
+          <div className="row">{inv && <><Badge tone={isClosed ? 'gray' : 'blue'}>{inv.status}</Badge><Badge tone={inv.priority === 'critical' || inv.priority === 'high' ? 'red' : 'gray'}>{inv.priority}</Badge>{inv.tags.map((t) => <Badge key={t}>{t}</Badge>)}</>}
             <span className="muted sm">{ws.entities.length} entities · {ws.relationships.length} relationships · {ws.evidence.length} evidence</span></div>
         </div>
-        <div className="row">{!inv && <button onClick={() => setSaveOpen(true)} disabled={!ws.entities.length}>Save as Investigation</button>}
-          <button className="primary" onClick={generate} disabled={!ws.entities.length}>GENERATE FULL REPORT</button></div>
+        <div className="row">
+          {!inv && <button onClick={() => setSaveOpen(true)} disabled={!ws.entities.length}>Save as Investigation</button>}
+          <button
+            className={isClosed ? 'btn-reopen-inv' : 'btn-close-inv'}
+            onClick={toggleClose}
+            disabled={!ws.entities.length}
+            title={isClosed ? 'Reopen Investigation' : 'Close Investigation'}
+          >
+            {isClosed ? '🔓 REOPEN INVESTIGATION' : '🔒 CLOSE INVESTIGATION'}
+          </button>
+          <button className="primary" onClick={generate} disabled={!ws.entities.length}>GENERATE FULL REPORT</button>
+        </div>
       </div>
 
       {!ws.entities.length ? <Empty>No matching intelligence exists for this identifier in the database.</Empty> : <>
@@ -70,7 +120,6 @@ export default function Workspace() {
         {tab === 'graph' && <GraphTab ws={ws} byId={byId} nameOf={nameOf} srcNames={srcNames} expand={expand} />}
         {tab === 'timeline' && <Timeline ws={ws} srcNames={srcNames} />}
         {tab === 'persona' && <Persona ws={ws} nameOf={nameOf} />}
-        {tab === 'anomaly' && <AnomalyTab ws={ws} q={query} />}
         {tab === 'infrastructure' && <Infra ws={ws} nameOf={nameOf} srcNames={srcNames} />}
         {tab === 'blockchain' && <Chain ws={ws} nameOf={nameOf} srcNames={srcNames} />}
         {tab === 'evidence' && <Evidence ws={ws} nameOf={nameOf} srcById={srcById} />}
@@ -297,42 +346,7 @@ function Persona({ ws, nameOf }) {
   );
 }
 
-function AnomalyTab({ ws, q }) {
-  const [data, setData] = useState(null);
-  const [busy, setBusy] = useState(false);
 
-  const runDetector = async () => {
-    setBusy(true);
-    try {
-      const p = { name: q.query, posts: ws.entities.map((e) => e.label || e.value) };
-      const r = await api.post('/inv/ai/anomaly', { persona: p });
-      setData(r.data);
-      toast.success('Anomaly detection complete');
-    } catch (e) { toast.error(errMsg(e)); }
-    setBusy(false);
-  };
-
-  useEffect(() => { runDetector(); }, []);
-
-  return (
-    <Card title="Threat Behavioral Anomaly Detection (Isolation Forest & LOF)" right={<button className="primary sm" onClick={runDetector} disabled={busy}>{busy ? 'Detecting...' : 'Re-run Detection'}</button>}>
-      <p className="muted sm">Identifies operational anomalies, wall-clock activity shifts, wallet off-ramp volatility, and stylometric drift using Isolation Forest algorithms:</p>
-      {!data ? <div className="boot">Scanning operational vectors for anomalies…</div> : <>
-        <div style={{ display: 'flex', gap: 16, marginBottom: 14, alignItems: 'center' }}>
-          <Stat label="Anomalies Flagged" value={data.anomalies_detected} tone={data.anomalies_detected > 0 ? 'warn' : 'green'} />
-          <Stat label="Subject Target" value={data.target} />
-        </div>
-        <Table rows={data.anomalies || []} empty="No operational anomalies detected." cols={[
-          { h: 'Anomaly Type', r: (a) => <b>{a.type}</b> },
-          { h: 'Severity', r: (a) => <Badge tone={a.severity === 'High' ? 'red' : 'amber'}>{a.severity}</Badge> },
-          { h: 'Isolation Score', r: (a) => <code>{a.score}</code> },
-          { h: 'Observational Details', r: (a) => a.detail }
-        ]} />
-        <p className="muted sm" style={{ marginTop: 12 }}>{data.safety_notice}</p>
-      </>}
-    </Card>
-  );
-}
 
 function Infra({ ws, nameOf, srcNames }) {
   const rows = ws.entities.filter((e) => ['infrastructure', 'domain'].includes(e.type));

@@ -2,15 +2,32 @@ import { useEffect, useRef } from 'react';
 import cytoscape from 'cytoscape';
 
 const TYPE_COLORS = {
+  actor: '#3b82f6',
+  username: '#38bdf8',
+  forum_account: '#a855f7',
+  marketplace_account: '#9333ea',
+  pgp: '#ec4899',
   wallet: '#fbbf24',
-  handle: '#38bdf8',
+  domain: '#10b981',
+  infrastructure: '#059669',
+  ip: '#ef4444',
   email: '#34d399',
-  ip: '#ff5d5d',
-  domain: '#a855f7',
+  handle: '#38bdf8',
   phone: '#f97316',
   org: '#ec4899',
-  person: '#2dd4bf',
+  person: '#3b82f6',
 };
+
+const LEGEND_ITEMS = [
+  { label: 'Threat Actor', color: '#3b82f6' },
+  { label: 'Username / Handle', color: '#38bdf8' },
+  { label: 'Forum / Marketplace', color: '#a855f7' },
+  { label: 'PGP Fingerprint', color: '#ec4899' },
+  { label: 'Crypto Wallet', color: '#fbbf24' },
+  { label: 'Domain / Infrastructure', color: '#10b981' },
+  { label: 'IP Address', color: '#ef4444' },
+  { label: 'Proposed Link', dash: true },
+];
 
 export default function Graph({ entities = [], relationships = [], onSelect, onExpand }) {
   const containerRef = useRef(null);
@@ -20,14 +37,20 @@ export default function Graph({ entities = [], relationships = [], onSelect, onE
     if (!containerRef.current) return;
 
     const elements = [
-      ...entities.map((e) => ({
-        data: {
-          id: e._id,
-          label: e.label || e.value || e._id,
-          type: e.type,
-          color: TYPE_COLORS[e.type] || '#2dd4bf',
-        },
-      })),
+      ...entities.map((e) => {
+        const isActor = e.type === 'actor';
+        return {
+          data: {
+            id: e._id,
+            label: e.label || e.value || e._id,
+            type: e.type,
+            color: TYPE_COLORS[e.type] || '#3b82f6',
+            size: isActor ? 42 : 28,
+            borderWidth: isActor ? 3 : 2,
+            borderColor: isActor ? '#60a5fa' : '#1e293b',
+          },
+        };
+      }),
       ...relationships.map((r) => ({
         data: {
           id: r._id,
@@ -48,39 +71,48 @@ export default function Graph({ entities = [], relationships = [], onSelect, onE
           style: {
             'background-color': 'data(color)',
             'label': 'data(label)',
-            'color': '#e6edf3',
+            'color': '#f8fafc',
             'font-size': '11px',
+            'font-weight': '600',
             'font-family': 'Inter, system-ui, sans-serif',
             'text-valign': 'bottom',
-            'text-margin-y': 6,
-            'width': 28,
-            'height': 28,
-            'border-width': 2,
-            'border-color': '#10151c',
+            'text-margin-y': 7,
+            'text-outline-color': '#0f172a',
+            'text-outline-width': 2,
+            'width': 'data(size)',
+            'height': 'data(size)',
+            'border-width': 'data(borderWidth)',
+            'border-color': 'data(borderColor)',
+            'transition-property': 'background-color, border-color, width, height',
+            'transition-duration': '0.2s',
           },
         },
         {
           selector: 'node:selected',
           style: {
-            'border-width': 3,
+            'border-width': 4,
             'border-color': '#ffffff',
-            'shadow-blur': 10,
-            'shadow-color': '#2dd4bf',
+            'shadow-blur': 12,
+            'shadow-color': '#3b82f6',
+            'shadow-opacity': 0.8,
           },
         },
         {
           selector: 'edge',
           style: {
             'width': 2,
-            'line-color': '#232c3a',
-            'target-arrow-color': '#232c3a',
+            'line-color': '#334155',
+            'target-arrow-color': '#334155',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             'label': 'data(label)',
-            'color': '#7d8ba1',
-            'font-size': '9px',
+            'color': '#94a3b8',
+            'font-size': '10px',
+            'font-weight': '500',
             'text-rotation': 'autorotate',
             'text-margin-y': -8,
+            'text-outline-color': '#0f172a',
+            'text-outline-width': 1.5,
           },
         },
         {
@@ -94,8 +126,8 @@ export default function Graph({ entities = [], relationships = [], onSelect, onE
         {
           selector: 'edge:selected',
           style: {
-            'line-color': '#2dd4bf',
-            'target-arrow-color': '#2dd4bf',
+            'line-color': '#3b82f6',
+            'target-arrow-color': '#3b82f6',
             'width': 3,
           },
         },
@@ -103,7 +135,16 @@ export default function Graph({ entities = [], relationships = [], onSelect, onE
       layout: {
         name: 'cose',
         animate: false,
-        padding: 40,
+        padding: 60,
+        nodeRepulsion: 450000,
+        idealEdgeLength: 130,
+        edgeElasticity: 100,
+        nestingFactor: 5,
+        gravity: 80,
+        numIter: 1000,
+        initialTemp: 200,
+        coolingFactor: 0.95,
+        minTemp: 1.0,
       },
     });
 
@@ -143,20 +184,29 @@ export default function Graph({ entities = [], relationships = [], onSelect, onE
   return (
     <div className="graph-box">
       <div className="graph-tools">
-        <button className="sm" onClick={handleZoomIn}>+</button>
-        <button className="sm" onClick={handleZoomOut}>-</button>
-        <button className="sm" onClick={handleFit}>Fit</button>
-        <button className="sm" onClick={handleReset}>Reset</button>
+        <button className="sm" onClick={handleZoomIn} title="Zoom In">+</button>
+        <button className="sm" onClick={handleZoomOut} title="Zoom Out">-</button>
+        <button className="sm" onClick={handleFit} title="Fit to Screen">Fit</button>
+        <button className="sm" onClick={handleReset} title="Reset View">Reset</button>
       </div>
+
       <div ref={containerRef} className="graph" />
-      <div className="legend">
-        <span><i style={{ background: '#fbbf24' }} /> Wallet</span>
-        <span><i style={{ background: '#38bdf8' }} /> Handle</span>
-        <span><i style={{ background: '#34d399' }} /> Email</span>
-        <span><i style={{ background: '#ff5d5d' }} /> IP</span>
-        <span><i style={{ background: '#a855f7' }} /> Domain</span>
-        <span><i style={{ background: '#2dd4bf' }} /> Person</span>
-        <span><i className="dash" /> Proposed edge</span>
+
+      {/* Clean Legend Box */}
+      <div className="graph-legend-bar">
+        <div className="legend-title">Graph Entity Legend:</div>
+        <div className="legend-items">
+          {LEGEND_ITEMS.map((item, idx) => (
+            <span key={idx} className="legend-chip">
+              {item.dash ? (
+                <i className="dash" />
+              ) : (
+                <i className="dot-pill" style={{ background: item.color }} />
+              )}
+              {item.label}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

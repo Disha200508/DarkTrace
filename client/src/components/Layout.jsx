@@ -6,8 +6,9 @@ const INV = [
   { label: 'Dashboard', to: '/inv' },
   { label: 'New Search', to: '/inv/search' },
   { group: 'Investigations', items: [{ label: 'Active', to: '/inv/investigations?bucket=active' }, { label: 'Saved', to: '/inv/investigations?bucket=saved' }, { label: 'Closed', to: '/inv/investigations?bucket=closed' }] },
-  { group: 'Intelligence', items: [{ label: 'Actors', to: '/inv/actors' }, { label: 'Relationship Graph', to: '/inv/investigations?bucket=active&tab=graph' }, { label: 'Timeline', to: '/inv/investigations?bucket=active&tab=timeline' }, { label: 'Evidence', to: '/inv/investigations?bucket=active&tab=evidence' }] },
-  { label: 'Alerts', to: '/inv/alerts' }, { label: 'Reports', to: '/inv/reports' }, { label: 'Search History', to: '/inv/history' },
+  { label: 'Alerts', to: '/inv/alerts' },
+  { label: 'Reports', to: '/inv/reports' },
+  { label: 'Search History', to: '/inv/history' },
 ];
 const ADMIN = [
   { label: 'Dashboard', to: '/admin' },

@@ -31,10 +31,40 @@ router.post('/search', can('search'), async (req, res) => {
 
 router.get('/entities/:id/neighbors', async (req, res) => res.json(await S.neighbors(req.params.id)));
 router.get('/entities', async (req, res) => {
-  const f = {}; if (typeof req.query.type === 'string' && req.query.type) f.type = req.query.type;
-  if (typeof req.query.q === 'string' && req.query.q) f.$or = [{ value: new RegExp(req.query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }, { label: new RegExp(req.query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }];
-  const items = await M.Entity.find(f).sort({ updatedAt: -1 }).limit(100).lean();
-  await audit({ user: req.user, req, action: 'View Actor', module: 'Intelligence', detail: f.type || 'all' });
+  const userLogs = await M.SearchLog.find({ user: req.user._id }).select('query').lean();
+  const userInvs = await M.Investigation.find({ owner: req.user._id }).select('search entityIds').lean();
+
+  const searchedValues = new Set();
+  userLogs.forEach((l) => l.query && searchedValues.add(l.query));
+  userInvs.forEach((i) => i.search?.query && searchedValues.add(i.search.query));
+  const entityIdsFromInvs = userInvs.flatMap((i) => i.entityIds || []);
+
+  if (searchedValues.size === 0 && entityIdsFromInvs.length === 0) {
+    return res.json({ items: [] });
+  }
+
+  const queryRegexes = Array.from(searchedValues).map((v) => new RegExp(v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  const baseFilter = {
+    $or: [
+      { _id: { $in: entityIdsFromInvs } },
+      { value: { $in: queryRegexes } },
+      { label: { $in: queryRegexes } }
+    ]
+  };
+
+  if (typeof req.query.type === 'string' && req.query.type) {
+    baseFilter.type = req.query.type;
+  }
+
+  if (typeof req.query.q === 'string' && req.query.q.trim()) {
+    const filterRegex = new RegExp(req.query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const searchMatch = { $or: [{ value: filterRegex }, { label: filterRegex }] };
+    baseFilter.$and = [{ $or: baseFilter.$or }, searchMatch];
+    delete baseFilter.$or;
+  }
+
+  const items = await M.Entity.find(baseFilter).sort({ updatedAt: -1 }).limit(100).lean();
+  await audit({ user: req.user, req, action: 'View Searched Entities', module: 'Intelligence', detail: req.query.type || 'all' });
   res.json({ items });
 });
 router.post('/evidence/:id/view', async (req, res) => { await audit({ user: req.user, req, action: 'View Evidence', module: 'Evidence', detail: req.params.id }); res.json({ ok: true }); });
